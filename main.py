@@ -21,7 +21,7 @@ def start(self):
     global hid_device_list
     global connected_devices
 
-    print("Looking for Device...")
+    print ( "Looking for Device..." )
     hid_device_filter = hid.HidDeviceFilter(vendor_id=hid_vendor_id, product_id=hid_product_id)
     hid_device_list = hid_device_filter.get_devices()
 
@@ -35,14 +35,15 @@ def start(self):
         widget.pbStop.show()
 
     else:
-        print("Oh No, no devices were found! \n")
+        print ( "Oh No, no devices were found! \n" )
 
 
 def raw_input_callback(data):
+    print ( "input callbaced!" )
     global ptt_key
     ptt_key = hex(int(widget.leButtonCode.text(), 16))
 
-    print(data)
+    print ( data )
     if data[2] == 1:
         keybd_event(ptt_key, 0, 0x0000, 0)
     elif data[2] == 0:
@@ -60,9 +61,121 @@ def stopping_raw_callback(self):
     widget.pbStop.hide()
     widget.pbStart.show()
 
+chislo_codes = {
+    '0':0x30,
+    '1':0x31,
+    '2':0x32,
+    '3':0x33,
+    '4':0x34,
+    '5':0x35,
+    '6':0x36,
+    '7':0x37,
+    '8':0x38,
+    '9':0x39,
+    '+': 0xBB,
+    '-': 0xBD,
+    '\\': 0xDC,
+    ',': 0xBC,
+    '.': 0xBE,
+    '/': 0xBF,
+    '`': 0xC0,
+    ';': 0xBA,
+    '[': 0xDB,
+    ']': 0xDD,
+    "'": 0xDE,
+    '`': 0xC0
+}
+key_codes = {
+    'a':0x41,
+    'b':0x42,
+    'c':0x43,
+    'd':0x44,
+    'e':0x45,
+    'f':0x46,
+    'g':0x47,
+    'h':0x48,
+    'i':0x49,
+    'j':0x4A,
+    'k':0x4B,
+    'l':0x4C,
+    'm':0x4D,
+    'n':0x4E,
+    'o':0x4F,
+    'p':0x50,
+    'q':0x51,
+    'r':0x52,
+    's':0x53,
+    't':0x54,
+    'u':0x55,
+    'v':0x56,
+    'w':0x57,
+    'x':0x58,
+    'y':0x59,
+    'z':0x5A,
+}
+spec_codes = {
+    'esc': 0x1B,
+    '⬅️': 0x25,
+    '⬆️': 0x26,
+    '➡️': 0x27,
+    '⬇️': 0x28,
+    'backspace':0x08,
+    'tab':0x09,
+    'enter': 0x0D,
+    'spacebar': 0x20,
+    'shift':0x10,
+    'ctrl':0x11,
+    'alt':0x12,
+    'clear': 0x0C,
+    'pause':0x13,
+    'page_up':0x21,
+    'page_down':0x22,
+    'end':0x23,
+    'home':0x24,
+    'select':0x29,
+    'print':0x2A,
+    'execute':0x2B,
+    'print_screen':0x2C,
+    'ins':0x2D,
+    'del':0x2E,
+    'help':0x2F
+}
+other_codes = {
+    'caps_lock': 0x14,
+    'scroll_lock': 0x91,
+    'left_shift':0xA0,
+    'right_shift ':0xA1,
+    'left_control':0xA2,
+    'right_control':0xA3,
+    'left_menu':0xA4,
+    'right_menu':0xA5,
+    'brwsr_back':0xA6,
+    'brwsr_forward':0xA7,
+    'brwsr_refresh':0xA8,
+    'brwsr_stop':0xA9,
+    'search':0xAA,
+    'favorites':0xAB,
+    'start_and_home':0xAC,
+    'vol_mute':0xAD,
+    'vol_Down':0xAE,
+    'vol_up':0xAF,
+    'next_track':0xB0,
+    'previous_track':0xB1,
+    'stop_media':0xB2,
+    'play/pause':0xB3,
+    'start_mail':0xB4,
+    'select_media':0xB5,
+    'start_app_1':0xB6,
+    'start_app_2':0xB7,
+    'attn_key':0xF6,
+    'crsel_key':0xF7,
+    'exsel_key':0xF8,
+    'play_key':0xFA,
+    'zoom_key':0xFB,
+    'clear_key':0xFE
+}
 
 class MyWidget(Qt.QWidget):
-
     class MyVirtualKeyboardSelector(Qt.QWidget):    # виджет виртуальной клавы
 
         class MySelectButton(Qt.QPushButton): # прототип для всех кнопочек
@@ -196,7 +309,6 @@ class MyWidget(Qt.QWidget):
                     self.buttons.append(new_buttn)
                     self.widget_nabor_other.grid.addWidget(new_buttn, i // 6, i % 6, 1, 1)
                     i += 1
-
     class MyButtonOpenKeySelector(Qt.QPushButton):  # кнопочка по которой показывается виртуальныя клава для выбора кнопки
         def __init__(self, parent=None):
             Qt.QPushButton.__init__(self, parent)
@@ -211,7 +323,6 @@ class MyWidget(Qt.QWidget):
             else:
                 widget.setFixedSize(window_size_expand_x, window_size_expand_y)
                 widget.my_virtual_keyboard_selector.show()
-
     def __init__(self):
         Qt.QWidget.__init__(self)
 
@@ -252,131 +363,14 @@ class MyWidget(Qt.QWidget):
 
         self.my_virtual_keyboard_selector = self.MyVirtualKeyboardSelector()
         self.grid.addWidget(self.my_virtual_keyboard_selector, 3, 0, 1, 2)
-
     def hideEvent(self, event):
         trayIcon.show()
         widget.setVisible(False)
         Qt.QWidget.hideEvent(widget, event)
-
     def restore_widget(self):
         widget.setVisible(True)
         Qt.QWidget.showNormal(widget)
         trayIcon.hide()
-
-chislo_codes = {
-    '0':0x30,
-    '1':0x31,
-    '2':0x32,
-    '3':0x33,
-    '4':0x34,
-    '5':0x35,
-    '6':0x36,
-    '7':0x37,
-    '8':0x38,
-    '9':0x39,
-    '+': 0xBB,
-    '-': 0xBD,
-    '\\': 0xDC,
-    ',': 0xBC,
-    '.': 0xBE,
-    '/': 0xBF,
-    '`': 0xC0,
-    ';': 0xBA,
-    '[': 0xDB,
-    ']': 0xDD,
-    "'": 0xDE,
-    '`': 0xC0
-}
-key_codes = {
-    'a':0x41,
-    'b':0x42,
-    'c':0x43,
-    'd':0x44,
-    'e':0x45,
-    'f':0x46,
-    'g':0x47,
-    'h':0x48,
-    'i':0x49,
-    'j':0x4A,
-    'k':0x4B,
-    'l':0x4C,
-    'm':0x4D,
-    'n':0x4E,
-    'o':0x4F,
-    'p':0x50,
-    'q':0x51,
-    'r':0x52,
-    's':0x53,
-    't':0x54,
-    'u':0x55,
-    'v':0x56,
-    'w':0x57,
-    'x':0x58,
-    'y':0x59,
-    'z':0x5A,
-}
-spec_codes = {
-    'esc': 0x1B,
-    '⬅️': 0x25,
-    '⬆️': 0x26,
-    '➡️': 0x27,
-    '⬇️': 0x28,
-    'backspace':0x08,
-    'tab':0x09,
-    'enter': 0x0D,
-    'spacebar': 0x20,
-    'shift':0x10,
-    'ctrl':0x11,
-    'alt':0x12,
-    'clear': 0x0C,
-    'pause':0x13,
-    'page_up':0x21,
-    'page_down':0x22,
-    'end':0x23,
-    'home':0x24,
-    'select':0x29,
-    'print':0x2A,
-    'execute':0x2B,
-    'print_screen':0x2C,
-    'ins':0x2D,
-    'del':0x2E,
-    'help':0x2F
-}
-other_codes = {
-    'caps_lock': 0x14,
-    'scroll_lock': 0x91,
-    'left_shift':0xA0,
-    'right_shift ':0xA1,
-    'left_control':0xA2,
-    'right_control':0xA3,
-    'left_menu':0xA4,
-    'right_menu':0xA5,
-    'brwsr_back':0xA6,
-    'brwsr_forward':0xA7,
-    'brwsr_refresh':0xA8,
-    'brwsr_stop':0xA9,
-    'search':0xAA,
-    'favorites':0xAB,
-    'start_and_home':0xAC,
-    'vol_mute':0xAD,
-    'vol_Down':0xAE,
-    'vol_up':0xAF,
-    'next_track':0xB0,
-    'previous_track':0xB1,
-    'stop_media':0xB2,
-    'play/pause':0xB3,
-    'start_mail':0xB4,
-    'select_media':0xB5,
-    'start_app_1':0xB6,
-    'start_app_2':0xB7,
-    'attn_key':0xF6,
-    'crsel_key':0xF7,
-    'exsel_key':0xF8,
-    'play_key':0xFA,
-    'zoom_key':0xFB,
-    'clear_key':0xFE
-}
-
 
 
 class MyTable_all_hid(Qt.QListWidget):
@@ -384,7 +378,6 @@ class MyTable_all_hid(Qt.QListWidget):
         Qt.QListWidget.__init__(self)
         self.setWindowFlags(Qt.Qt.Popup)
         self.setMinimumHeight(300)
-
     def obnivit(self):
         self.clear()
         hid_device_filter = hid.HidDeviceFilter()
@@ -393,7 +386,6 @@ class MyTable_all_hid(Qt.QListWidget):
             self.addItem(str(i))
         self.setGeometry(widget.pos().x(), widget.pos().y(), 900, 300)
         self.show()
-
     def mousePressEvent(self, event):
         Qt.QListWidget.mousePressEvent(self, event)
         self.hide()
