@@ -61,31 +61,166 @@ def stopping_raw_callback(self):
     widget.pbStart.show()
 
 
-# кнопочка по которой показывается виртуальныя клава для выбора кнопки
-class MyButtonOpenKeySelector(Qt.QPushButton):
-    def __init__(self, parent=None):
-        Qt.QPushButton.__init__(self, parent)
-        self.setFlat(True)
-        self.setCheckable(True)
-        self.pressed.connect(self.slot_checked)
-
-    def slot_checked(self):
-        if self.isChecked():
-            my_virtual_keyboard_selector.hide()
-            widget.setFixedSize(window_size_x, window_size_y)
-        else:
-            widget.setFixedSize(window_size_expand_x, window_size_expand_y)
-            my_virtual_keyboard_selector.show()
-
 class MyWidget(Qt.QWidget):
+
+    class MyVirtualKeyboardSelector(Qt.QWidget):    # виджет виртуальной клавы
+
+        class MySelectButton(Qt.QPushButton): # прототип для всех кнопочек
+            def __init__(self, name, code):
+                Qt.QPushButton.__init__(self)
+                self.setMinimumHeight(22)
+                self.setMaximumHeight(100)
+                self.name = name
+                self.setText(name)
+                self.code = hex(code)
+                self.pressed.connect(self.najal)
+
+            def najal(self):
+                widget.leButtonCode.setText(str(self.code))
+
+        def __init__(self):
+            Qt.QWidget.__init__(self)
+            self.hide()
+
+            self.grid = Qt.QGridLayout(self)
+            self.grid.setSpacing(0)
+            self.grid.setContentsMargins(0, 0, 0, 0)
+            self.buttons = []
+
+            self.widget_nabor1 = Qt.QGroupBox()
+            self.widget_nabor1.setTitle("keys")
+            self.widget_nabor1.grid = Qt.QGridLayout(self.widget_nabor1)
+            self.widget_nabor1.grid.setSpacing(0)
+            self.widget_nabor1.grid.setContentsMargins(0, 0, 0, 0)
+            self.grid.addWidget(self.widget_nabor1, 0, 0, 1, 1)
+
+            x = 0
+            for nabor in [chislo_codes, key_codes]:
+                i = 0
+                for vk, cod in nabor.items():
+                    new_buttn = self.MySelectButton(vk, cod)
+                    self.buttons.append(new_buttn)
+                    self.widget_nabor1.grid.addWidget(new_buttn, x, i, 1, 1)
+                    i = i + 1
+                    if i > 11:
+                        x += 1
+                        i = 0
+                x += 1
+
+            self.widget_nabor_Func = Qt.QGroupBox()
+            self.widget_nabor_Func.setTitle("Func")
+            self.widget_nabor_Func.grid = Qt.QGridLayout(self.widget_nabor_Func)
+            self.widget_nabor_Func.grid.setSpacing(0)
+            self.widget_nabor_Func.grid.setContentsMargins(0, 0, 0, 0)
+            self.grid.addWidget(self.widget_nabor_Func, 1, 0, 1, 2)
+
+            # кнопочки можно добавлять так:
+            i = 0
+            x = 0
+            for vk, cod in {
+                'F1': 0x70,
+                'F2': 0x71,
+                'F3': 0x72,
+                'F4': 0x73,
+                'F5': 0x74,
+                'F6': 0x75,
+                'F7': 0x76,
+                'F8': 0x77,
+                'F9': 0x78,
+                'F10': 0x79,
+                'F11': 0x7A,
+                'F12': 0x7B,
+                'F13': 0x7C,
+                'F14': 0x7D,
+                'F15': 0x7E,
+                'F16': 0x7F,
+                'F17': 0x80,
+                'F18': 0x81,
+                'F19': 0x82,
+                'F20': 0x83,
+                'F21': 0x84,
+                'F22': 0x85,
+                'F23': 0x86,
+                'F24': 0x87
+            }.items():
+                new_buttn = self.MySelectButton(vk, cod)
+                self.buttons.append(new_buttn)
+                self.widget_nabor_Func.grid.addWidget(new_buttn, i, x, 1, 1)
+                x += 1
+                if x > 11:
+                    x = 0
+                    i += 1
+
+            self.widget_numpads = Qt.QGroupBox()
+            self.widget_numpads.setTitle("NUM_PAD")
+            self.widget_numpads.grid = Qt.QGridLayout(self.widget_numpads)
+            self.widget_numpads.grid.setSpacing(0)
+            self.widget_numpads.grid.setContentsMargins(0, 0, 0, 0)
+            self.grid.addWidget(self.widget_numpads, 0, 1, 1, 1)
+
+            # или так
+            self.widget_numpads.grid.addWidget(self.MySelectButton('lck', 0x90), 0, 0, 1, 1)
+            self.widget_numpads.grid.addWidget(self.MySelectButton('/', 0x6F), 0, 1, 1, 1)
+            self.widget_numpads.grid.addWidget(self.MySelectButton('*', 0x6A), 0, 2, 1, 1)
+            self.widget_numpads.grid.addWidget(self.MySelectButton('-', 0x6D), 0, 3, 1, 1)
+
+            self.widget_numpads.grid.addWidget(self.MySelectButton('7', 0x67), 1, 0, 1, 1)
+            self.widget_numpads.grid.addWidget(self.MySelectButton('8', 0x68), 1, 1, 1, 1)
+            self.widget_numpads.grid.addWidget(self.MySelectButton('9', 0x69), 1, 2, 1, 1)
+            self.widget_numpads.grid.addWidget(self.MySelectButton('+', 0x6B), 1, 3, 2, 1)
+
+            self.widget_numpads.grid.addWidget(self.MySelectButton('4', 0x64), 2, 0, 1, 1)
+            self.widget_numpads.grid.addWidget(self.MySelectButton('5', 0x65), 2, 1, 1, 1)
+            self.widget_numpads.grid.addWidget(self.MySelectButton('6', 0x66), 2, 2, 1, 1)
+
+            self.widget_numpads.grid.addWidget(self.MySelectButton('1', 0x61), 3, 0, 1, 1)
+            self.widget_numpads.grid.addWidget(self.MySelectButton('2', 0x62), 3, 1, 1, 1)
+            self.widget_numpads.grid.addWidget(self.MySelectButton('3', 0x63), 3, 2, 1, 1)
+            self.widget_numpads.grid.addWidget(self.MySelectButton('ent', 0x6E), 3, 3, 2, 1)
+
+            self.widget_numpads.grid.addWidget(self.MySelectButton('0', 0x60), 4, 0, 1, 2)
+            self.widget_numpads.grid.addWidget(self.MySelectButton('.', 0x6C), 4, 2, 1, 1)
+
+            self.widget_nabor_other = Qt.QGroupBox()
+            self.widget_nabor_other.setTitle("other")
+            self.widget_nabor_other.grid = Qt.QGridLayout(self.widget_nabor_other)
+            self.widget_nabor_other.grid.setSpacing(0)
+            self.widget_nabor_other.grid.setContentsMargins(0, 0, 0, 0)
+            self.grid.addWidget(self.widget_nabor_other, 2, 0, 1, 2)
+
+            # и даже так:
+            i = 0
+            for nabor in [spec_codes, other_codes]:
+                for vk, cod in nabor.items():
+                    new_buttn = self.MySelectButton(vk, cod)
+                    self.buttons.append(new_buttn)
+                    self.widget_nabor_other.grid.addWidget(new_buttn, i // 6, i % 6, 1, 1)
+                    i += 1
+
+    class MyButtonOpenKeySelector(Qt.QPushButton):  # кнопочка по которой показывается виртуальныя клава для выбора кнопки
+        def __init__(self, parent=None):
+            Qt.QPushButton.__init__(self, parent)
+            self.setFlat(True)
+            self.setCheckable(True)
+            self.pressed.connect(self.slot_checked)
+
+        def slot_checked(self):
+            if self.isChecked():
+                widget.my_virtual_keyboard_selector.hide()
+                widget.setFixedSize(window_size_x, window_size_y)
+            else:
+                widget.setFixedSize(window_size_expand_x, window_size_expand_y)
+                widget.my_virtual_keyboard_selector.show()
+
     def __init__(self):
         Qt.QWidget.__init__(self)
+
         self.setWindowTitle("Hot Key")
         self.grid = Qt.QGridLayout(self)
         self.grid.setSpacing(0)
         self.grid.setContentsMargins(0,0,0,0)
 
-        self.label = MyButtonOpenKeySelector(self)
+        self.label = self.MyButtonOpenKeySelector(self)
         self.label.setText("Button code ⌨️")
         self.grid.addWidget(self.label, 0, 0, 1, 1)
 
@@ -115,6 +250,8 @@ class MyWidget(Qt.QWidget):
         self.lStatus.setAlignment(Qt.Qt.AlignCenter)
         self.grid.addWidget(self.lStatus, 2, 0, 1, 2)
 
+        self.my_virtual_keyboard_selector = self.MyVirtualKeyboardSelector()
+        self.grid.addWidget(self.my_virtual_keyboard_selector, 3, 0, 1, 2)
 
     def hideEvent(self, event):
         trayIcon.show()
@@ -240,144 +377,7 @@ other_codes = {
     'clear_key':0xFE
 }
 
-# сам виджет виртуальной клавы
-class MyVirtualKeyboardSelector(Qt.QWidget):
 
-    # прототип для всех кнопочек
-    class MySelectButton(Qt.QPushButton):
-        def __init__(self, name, code):
-            Qt.QPushButton.__init__(self)
-            self.setMinimumHeight(22)
-            self.setMaximumHeight(100)
-            self.name = name
-            self.setText(name)
-            self.code = hex(code)
-            self.pressed.connect(self.najal)
-
-        def najal(self):
-            widget.leButtonCode.setText(str(self.code))
-
-    def __init__(self):
-        Qt.QWidget.__init__(self)
-        self.hide()
-
-        self.grid = Qt.QGridLayout(self)
-        self.grid.setSpacing(0)
-        self.grid.setContentsMargins(0,0,0,0)
-        self.buttons = []
-
-        self.widget_nabor1 = Qt.QGroupBox()
-        self.widget_nabor1.setTitle("keys")
-        self.widget_nabor1.grid = Qt.QGridLayout(self.widget_nabor1)
-        self.widget_nabor1.grid.setSpacing(0)
-        self.widget_nabor1.grid.setContentsMargins(0, 0, 0, 0)
-        self.grid.addWidget(self.widget_nabor1, 0, 0, 1, 1)
-
-        x = 0
-        for nabor in [chislo_codes, key_codes]:
-            i = 0
-            for vk, cod in nabor.items():
-                new_buttn = self.MySelectButton(vk, cod)
-                self.buttons.append(new_buttn)
-                self.widget_nabor1.grid.addWidget(new_buttn, x, i, 1, 1)
-                i = i + 1
-                if i > 11:
-                    x += 1
-                    i = 0
-            x += 1
-
-        self.widget_nabor_Func = Qt.QGroupBox()
-        self.widget_nabor_Func.setTitle("Func")
-        self.widget_nabor_Func.grid = Qt.QGridLayout(self.widget_nabor_Func)
-        self.widget_nabor_Func.grid.setSpacing(0)
-        self.widget_nabor_Func.grid.setContentsMargins(0, 0, 0, 0)
-        self.grid.addWidget(self.widget_nabor_Func, 1, 0, 1, 2)
-
-        # кнопочки можно добавлять так:
-        i = 0
-        x = 0
-        for vk, cod in {
-                'F1':0x70,
-                'F2':0x71,
-                'F3':0x72,
-                'F4':0x73,
-                'F5':0x74,
-                'F6':0x75,
-                'F7':0x76,
-                'F8':0x77,
-                'F9':0x78,
-                'F10':0x79,
-                'F11':0x7A,
-                'F12':0x7B,
-                'F13':0x7C,
-                'F14':0x7D,
-                'F15':0x7E,
-                'F16':0x7F,
-                'F17':0x80,
-                'F18':0x81,
-                'F19':0x82,
-                'F20':0x83,
-                'F21':0x84,
-                'F22':0x85,
-                'F23':0x86,
-                'F24':0x87
-        }.items():
-            new_buttn = self.MySelectButton(vk, cod)
-            self.buttons.append(new_buttn)
-            self.widget_nabor_Func.grid.addWidget(new_buttn, i, x, 1, 1)
-            x += 1
-            if x > 11:
-                x = 0
-                i += 1
-
-        self.widget_numpads = Qt.QGroupBox()
-        self.widget_numpads.setTitle("NUM_PAD")
-        self.widget_numpads.grid = Qt.QGridLayout(self.widget_numpads)
-        self.widget_numpads.grid.setSpacing(0)
-        self.widget_numpads.grid.setContentsMargins(0, 0, 0, 0)
-        self.grid.addWidget(self.widget_numpads, 0, 1, 1, 1)
-
-        # или так
-        self.widget_numpads.grid.addWidget(self.MySelectButton('lck', 0x90), 0, 0, 1, 1)
-        self.widget_numpads.grid.addWidget(self.MySelectButton('/',   0x6F), 0, 1, 1, 1)
-        self.widget_numpads.grid.addWidget(self.MySelectButton('*',   0x6A), 0, 2, 1, 1)
-        self.widget_numpads.grid.addWidget(self.MySelectButton('-',   0x6D), 0, 3, 1, 1)
-
-        self.widget_numpads.grid.addWidget(self.MySelectButton('7',   0x67), 1, 0, 1, 1)
-        self.widget_numpads.grid.addWidget(self.MySelectButton('8',   0x68), 1, 1, 1, 1)
-        self.widget_numpads.grid.addWidget(self.MySelectButton('9',   0x69), 1, 2, 1, 1)
-        self.widget_numpads.grid.addWidget(self.MySelectButton('+',   0x6B), 1, 3, 2, 1)
-
-        self.widget_numpads.grid.addWidget(self.MySelectButton('4',   0x64), 2, 0, 1, 1)
-        self.widget_numpads.grid.addWidget(self.MySelectButton('5',   0x65), 2, 1, 1, 1)
-        self.widget_numpads.grid.addWidget(self.MySelectButton('6',   0x66), 2, 2, 1, 1)
-
-        self.widget_numpads.grid.addWidget(self.MySelectButton('1',   0x61), 3, 0, 1, 1)
-        self.widget_numpads.grid.addWidget(self.MySelectButton('2',   0x62), 3, 1, 1, 1)
-        self.widget_numpads.grid.addWidget(self.MySelectButton('3',   0x63), 3, 2, 1, 1)
-        self.widget_numpads.grid.addWidget(self.MySelectButton('ent', 0x6E), 3, 3, 2, 1)
-
-        self.widget_numpads.grid.addWidget(self.MySelectButton('0',   0x60), 4, 0, 1, 2)
-        self.widget_numpads.grid.addWidget(self.MySelectButton('.',   0x6C), 4, 2, 1, 1)
-
-
-        self.widget_nabor_other = Qt.QGroupBox()
-        self.widget_nabor_other.setTitle("other")
-        self.widget_nabor_other.grid = Qt.QGridLayout(self.widget_nabor_other)
-        self.widget_nabor_other.grid.setSpacing(0)
-        self.widget_nabor_other.grid.setContentsMargins(0, 0, 0, 0)
-        self.grid.addWidget(self.widget_nabor_other, 2, 0, 1, 2)
-
-        # и даже так:
-        i = 0
-        for nabor in [spec_codes, other_codes]:
-            for vk, cod in nabor.items():
-                new_buttn = self.MySelectButton(vk, cod)
-                self.buttons.append(new_buttn)
-                self.widget_nabor_other.grid.addWidget(new_buttn, i//6, i%6, 1, 1)
-                i += 1
-
-my_virtual_keyboard_selector = MyVirtualKeyboardSelector()
 
 class MyTable_all_hid(Qt.QListWidget):
     def __init__(self):
@@ -402,7 +402,6 @@ class MyTable_all_hid(Qt.QListWidget):
 my_list_hids = MyTable_all_hid()
 
 widget = MyWidget()
-widget.grid.addWidget(my_virtual_keyboard_selector, 3, 0, 1, 2)
 
 widget.pbStart.clicked.connect(start)
 widget.pbStop.clicked.connect(stopping_raw_callback)
