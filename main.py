@@ -116,15 +116,15 @@ class MyWidget(Qt.QWidget):
         self.grid.addWidget(self.lStatus, 2, 0, 1, 2)
 
 
-def hideEvent(event):
-    trayIcon.show()
-    widget.setVisible(False)
-    Qt.QWidget.hideEvent(widget, event)
+    def hideEvent(self, event):
+        trayIcon.show()
+        widget.setVisible(False)
+        Qt.QWidget.hideEvent(widget, event)
 
-def restore_widget():
-    widget.setVisible(True)
-    Qt.QWidget.showNormal(widget)
-    trayIcon.hide()
+    def restore_widget(self):
+        widget.setVisible(True)
+        Qt.QWidget.showNormal(widget)
+        trayIcon.hide()
 
 chislo_codes = {
     '0':0x30,
@@ -410,8 +410,7 @@ widget.pbStop.clicked.connect(stopping_raw_callback)
 trayIcon = Qt.QSystemTrayIcon(
     Qt.QIcon("myicon.png"), widget)
 
-widget.hideEvent = hideEvent
-trayIcon.activated.connect(restore_widget)
+trayIcon.activated.connect(widget.restore_widget)
 
 widget.setFixedSize(window_size_x, window_size_y)
 widget.show()
