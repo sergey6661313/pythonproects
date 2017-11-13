@@ -4,9 +4,14 @@ from win32api import keybd_event
 from PyQt5 import Qt, QtCore
 qt_app = Qt.QApplication([])
 
+window_size_x = 150
+window_size_y = 70
+window_size_expand_x = 480
+window_size_expand_y = 500
+
 hid_vendor_id =  0x0b57
 hid_product_id = 0x1304
-ptt_key = ptt_key=0x08
+ptt_key = 0x08
 connected_devices = []
 hid_device_filter = hid.HidDeviceFilter(vendor_id=hid_vendor_id, product_id=hid_product_id)
 hid_device_list = None
@@ -27,6 +32,8 @@ def start(self):
             device.set_raw_data_handler(raw_input_callback)
         uidialog.lStatus.setText(
             qt_app.translate("Dialog", "<font color=\"green\">connected</font>", None, -1))
+        uidialog.pbStart.hide()
+        uidialog.pbStop.show()
 
     else:
         print("Oh No, no devices were found! \n")
@@ -51,6 +58,8 @@ def stopping_raw_callback(self):
 
     connected_devices.clear()
     uidialog.lStatus.setText("<font color=\"red\">disconnected</font>")
+    uidialog.pbStop.hide()
+    uidialog.pbStart.show()
 
 
 # кнопочка по которой показывается виртуальныя клава для выбора кнопки
@@ -64,23 +73,21 @@ class MyButtonOpenKeySelector(Qt.QPushButton):
     def slot_checked(self):
         if self.isChecked():
             my_virtual_keyboard_selector.hide()
-            widget.resize(268, 60)
+            widget.setFixedSize(window_size_x, window_size_y)
         else:
+            widget.setFixedSize(window_size_expand_x, window_size_expand_y)
             my_virtual_keyboard_selector.show()
-            widget.resize(500, 400)
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
-        # Dialog.resize(268, 70)  заместо этого делаем:
-        Dialog.setMinimumSize(268, 60)
-        Dialog.setMaximumSize(500, 400)
-
+        Dialog.setWindowTitle("Hot Key")
         Dialog.grid = Qt.QGridLayout(Dialog)# создаём виртуальную "сетку"
         Dialog.grid.setSpacing(0)
         Dialog.grid.setContentsMargins(0,0,0,0)
 
         # кнопочка для показа клавиатуры
         self.label = MyButtonOpenKeySelector(Dialog) # невидимая кнопочка которая маскируется под лейбел
+        self.label.setText("Button code ⌨️")
         Dialog.grid.addWidget(self.label, 0, 0, 1, 1)
 
         self.leButtonCode = Qt.QLineEdit(Dialog)
@@ -88,11 +95,14 @@ class Ui_Dialog(object):
         Dialog.grid.addWidget(self.leButtonCode, 0, 1, 1, 1)
         self.leButtonCode.setText("0x08")
 
-        self.pbStart = Qt.QPushButton(Dialog)
-        Dialog.grid.addWidget(self.pbStart, 1, 0, 1, 1)
-
         self.pbStop = Qt.QPushButton(Dialog)
-        Dialog.grid.addWidget(self.pbStop, 1, 1, 1, 1)
+        self.pbStop.setText("Stop ⏹️")
+        Dialog.grid.addWidget(self.pbStop, 1, 0, 1, 2)
+        self.pbStop.hide()
+
+        self.pbStart = Qt.QPushButton(Dialog)
+        self.pbStart.setText("Start 🏁")
+        Dialog.grid.addWidget(self.pbStart, 1, 0, 1, 2)
 
         # ещё одна новая кнопочка для отладки... можно удалить...
         self.pballdevices = Qt.QPushButton(Dialog)
@@ -101,19 +111,10 @@ class Ui_Dialog(object):
         Dialog.grid.addWidget(self.pballdevices, 0, 2, 2, 1)
 
         self.lStatus = Qt.QLabel(Dialog)
-        self.lStatus.setMaximumHeight(15)
+        self.lStatus.setText("<font color=\"red\">disconnected</font>")
+        self.lStatus.adjustSize()
         self.lStatus.setAlignment(Qt.Qt.AlignCenter)
         Dialog.grid.addWidget(self.lStatus, 2, 0, 1, 2)
-
-        self.retranslateUi(Dialog)
-        QtCore.QMetaObject.connectSlotsByName(Dialog)
-
-    def retranslateUi(self, Dialog):
-        Dialog.setWindowTitle(qt_app.translate("Dialog", "Hot Key", None, -1))
-        self.pbStart.setText(qt_app.translate("Dialog", "Start", None, -1))
-        self.label.setText(qt_app.translate("Dialog", "Button code", None, -1))
-        self.pbStop.setText(qt_app.translate("Dialog", "Stop", None, -1))
-        self.lStatus.setText(qt_app.translate("Dialog", "<font color=\"red\">disconnected</font>", None, -1))
 
 
 def hideEvent(event):
@@ -180,10 +181,10 @@ key_codes = {
 }
 spec_codes = {
     'esc': 0x1B,
-    'left_arrow': 0x25,
-    'up_arrow': 0x26,
-    'right_arrow': 0x27,
-    'down_arrow': 0x28,
+    '⬅️': 0x25,
+    '⬆️': 0x26,
+    '➡️': 0x27,
+    '⬇️': 0x28,
     'backspace':0x08,
     'tab':0x09,
     'enter': 0x0D,
@@ -247,7 +248,7 @@ class MyVirtualKeyboardSelector(Qt.QWidget):
     class MySelectButton(Qt.QPushButton):
         def __init__(self, name, code):
             Qt.QPushButton.__init__(self)
-            self.setMinimumHeight(18)
+            self.setMinimumHeight(22)
             self.setMaximumHeight(100)
             self.name = name
             self.setText(name)
@@ -416,6 +417,8 @@ if __name__ == '__main__':
 
     widget.hideEvent = hideEvent
     trayIcon.activated.connect(restore_widget)
+
+    widget.setFixedSize(window_size_x, window_size_y)
     widget.show()
 
     qt_app.exec() # Ой всё!
