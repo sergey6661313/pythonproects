@@ -30,10 +30,9 @@ def start(self):
             connected_devices.append(device)
             device.open()
             device.set_raw_data_handler(raw_input_callback)
-        uidialog.lStatus.setText(
-            qt_app.translate("Dialog", "<font color=\"green\">connected</font>", None, -1))
-        uidialog.pbStart.hide()
-        uidialog.pbStop.show()
+        widget.lStatus.setText("<font color=\"green\">connected</font>")
+        widget.pbStart.hide()
+        widget.pbStop.show()
 
     else:
         print("Oh No, no devices were found! \n")
@@ -41,7 +40,7 @@ def start(self):
 
 def raw_input_callback(data):
     global ptt_key
-    ptt_key = hex(int(uidialog.leButtonCode.text(), 16))
+    ptt_key = hex(int(widget.leButtonCode.text(), 16))
 
     print(data)
     if data[2] == 1:
@@ -57,9 +56,9 @@ def stopping_raw_callback(self):
         dev.close()
 
     connected_devices.clear()
-    uidialog.lStatus.setText("<font color=\"red\">disconnected</font>")
-    uidialog.pbStop.hide()
-    uidialog.pbStart.show()
+    widget.lStatus.setText("<font color=\"red\">disconnected</font>")
+    widget.pbStop.hide()
+    widget.pbStart.show()
 
 
 # кнопочка по которой показывается виртуальныя клава для выбора кнопки
@@ -78,43 +77,43 @@ class MyButtonOpenKeySelector(Qt.QPushButton):
             widget.setFixedSize(window_size_expand_x, window_size_expand_y)
             my_virtual_keyboard_selector.show()
 
-class Ui_Dialog(object):
-    def setupUi(self, Dialog):
-        Dialog.setWindowTitle("Hot Key")
-        Dialog.grid = Qt.QGridLayout(Dialog)# создаём виртуальную "сетку"
-        Dialog.grid.setSpacing(0)
-        Dialog.grid.setContentsMargins(0,0,0,0)
+class MyWidget(Qt.QWidget):
+    def __init__(self):
+        Qt.QWidget.__init__(self)
+        self.setWindowTitle("Hot Key")
+        self.grid = Qt.QGridLayout(self)
+        self.grid.setSpacing(0)
+        self.grid.setContentsMargins(0,0,0,0)
 
-        # кнопочка для показа клавиатуры
-        self.label = MyButtonOpenKeySelector(Dialog) # невидимая кнопочка которая маскируется под лейбел
+        self.label = MyButtonOpenKeySelector(self)
         self.label.setText("Button code ⌨️")
-        Dialog.grid.addWidget(self.label, 0, 0, 1, 1)
+        self.grid.addWidget(self.label, 0, 0, 1, 1)
 
-        self.leButtonCode = Qt.QLineEdit(Dialog)
+        self.leButtonCode = Qt.QLineEdit(self)
         self.leButtonCode.setReadOnly(True)
-        Dialog.grid.addWidget(self.leButtonCode, 0, 1, 1, 1)
+        self.grid.addWidget(self.leButtonCode, 0, 1, 1, 1)
         self.leButtonCode.setText("0x08")
 
-        self.pbStop = Qt.QPushButton(Dialog)
+        self.pbStop = Qt.QPushButton(self)
         self.pbStop.setText("Stop ⏹️")
-        Dialog.grid.addWidget(self.pbStop, 1, 0, 1, 2)
+        self.grid.addWidget(self.pbStop, 1, 0, 1, 2)
         self.pbStop.hide()
 
-        self.pbStart = Qt.QPushButton(Dialog)
+        self.pbStart = Qt.QPushButton(self)
         self.pbStart.setText("Start 🏁")
-        Dialog.grid.addWidget(self.pbStart, 1, 0, 1, 2)
+        self.grid.addWidget(self.pbStart, 1, 0, 1, 2)
 
         # ещё одна новая кнопочка для отладки... можно удалить...
-        self.pballdevices = Qt.QPushButton(Dialog)
+        self.pballdevices = Qt.QPushButton(self)
         self.pballdevices.setMaximumWidth(10)
         self.pballdevices.pressed.connect(my_list_hids.obnivit)
-        Dialog.grid.addWidget(self.pballdevices, 0, 2, 2, 1)
+        self.grid.addWidget(self.pballdevices, 0, 2, 2, 1)
 
-        self.lStatus = Qt.QLabel(Dialog)
+        self.lStatus = Qt.QLabel(self)
         self.lStatus.setText("<font color=\"red\">disconnected</font>")
         self.lStatus.adjustSize()
         self.lStatus.setAlignment(Qt.Qt.AlignCenter)
-        Dialog.grid.addWidget(self.lStatus, 2, 0, 1, 2)
+        self.grid.addWidget(self.lStatus, 2, 0, 1, 2)
 
 
 def hideEvent(event):
@@ -256,7 +255,7 @@ class MyVirtualKeyboardSelector(Qt.QWidget):
             self.pressed.connect(self.najal)
 
         def najal(self):
-            uidialog.leButtonCode.setText(str(self.code))
+            widget.leButtonCode.setText(str(self.code))
 
     def __init__(self):
         Qt.QWidget.__init__(self)
@@ -392,7 +391,7 @@ class MyTable_all_hid(Qt.QListWidget):
         hid_device_list = hid_device_filter.get_devices()
         for i in hid_device_list:
             self.addItem(str(i))
-        self.setGeometry(widget.geometry())
+        self.setGeometry(widget.pos().x(), widget.pos().y(), 900, 300)
         self.show()
 
     def mousePressEvent(self, event):
@@ -402,23 +401,19 @@ class MyTable_all_hid(Qt.QListWidget):
 
 my_list_hids = MyTable_all_hid()
 
-if __name__ == '__main__':
+widget = MyWidget()
+widget.grid.addWidget(my_virtual_keyboard_selector, 3, 0, 1, 2)
 
-    widget = Qt.QWidget()
-    uidialog = Ui_Dialog()
-    uidialog.setupUi(widget)
-    widget.grid.addWidget(my_virtual_keyboard_selector, 3, 0, 1, 2)
+widget.pbStart.clicked.connect(start)
+widget.pbStop.clicked.connect(stopping_raw_callback)
 
-    uidialog.pbStart.clicked.connect(start)
-    uidialog.pbStop.clicked.connect(stopping_raw_callback)
+trayIcon = Qt.QSystemTrayIcon(
+    Qt.QIcon("myicon.png"), widget)
 
-    trayIcon = Qt.QSystemTrayIcon(
-        Qt.QIcon("myicon.png"), widget)
+widget.hideEvent = hideEvent
+trayIcon.activated.connect(restore_widget)
 
-    widget.hideEvent = hideEvent
-    trayIcon.activated.connect(restore_widget)
+widget.setFixedSize(window_size_x, window_size_y)
+widget.show()
 
-    widget.setFixedSize(window_size_x, window_size_y)
-    widget.show()
-
-    qt_app.exec() # Ой всё!
+qt_app.exec()
