@@ -57,15 +57,16 @@ class App:
 
 class OtdelniyProcess(Qt.QThread):
     def run(self):
-        if app.opros():
-            uidialog.lStatus.setText(
-                qt_app.translate("Dialog", "<font color=\"green\">connected</font>", None, qt_app.UnicodeUTF8))
-            self.msleep(1000)
-            while app.opros():
+        if not self.isRunning():
+            if app.opros():
+                uidialog.lStatus.setText(
+                    qt_app.translate("Dialog", "<font color=\"green\">connected</font>", None, qt_app.UnicodeUTF8))
                 self.msleep(1000)
+                while app.opros():
+                    self.msleep(1000)
 
-        uidialog.lStatus.setText(
-            qt_app.translate("Dialog", "<font color=\"red\">disconnected</font>", None, qt_app.UnicodeUTF8))
+            uidialog.lStatus.setText(
+                qt_app.translate("Dialog", "<font color=\"red\">disconnected</font>", None, qt_app.UnicodeUTF8))
 
     def stop(self):
         uidialog.lStatus.setText(qt_app.translate("Dialog", "<font color=\"red\">disconnected</font>", None, qt_app.UnicodeUTF8))
