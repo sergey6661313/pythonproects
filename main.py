@@ -17,8 +17,10 @@ class App:
     hid_device_list = None
     sound_enabled = True
 
+
     def __init__(self, ptt_key=0x08):
         self._ptt_key = ptt_key
+        self.connected_devices = []
 
     def set_ptt_key(self, value):
         self._ptt_key = value
@@ -30,23 +32,23 @@ class App:
 
     def start(self):
         hex_str = uidialog.leButtonCode.text()
-        hex_int = hex(int(hex_str, 16)) # забыл в предыдущем примере сделать из int hex тут исправлено
+        hex_int = hex(int(hex_str, 16))
         self.set_ptt_key(hex_int)
         print ( "Looking for Device..." )
         self.hid_device_filter = hid.HidDeviceFilter(vendor_id = self.hid_vendor_id, product_id = self.hid_product_id)
         self.hid_device_list = self.hid_device_filter.get_devices()
-        otdelniy_process.start()
 
-    def opros(self):
         self.hid_device_list = self.hid_device_filter.get_devices()
         if self.hid_device_list:
             for device in self.hid_device_list:
+                self.connected_devices.append(device)
                 device.open()
                 device.set_raw_data_handler(self.raw_input_callback)
-                return True
+            uidialog.lStatus.setText(
+                qt_app.translate("Dialog", "<font color=\"green\">connected</font>", None, qt_app.UnicodeUTF8))
+
         else:
             print ( "Oh No, no devices were found! \n" )
-            return False
 
     def raw_input_callback(self, data):
         print(data)
@@ -55,21 +57,13 @@ class App:
         elif data[2] == 0:
             keybd_event(self.ptt_key, 0, 0x0002, 0)
 
-class OtdelniyProcess(Qt.QThread):
-    def run(self):
-        if not self.isRunning():
-            if app.opros():
-                uidialog.lStatus.setText(
-                    qt_app.translate("Dialog", "<font color=\"green\">connected</font>", None, qt_app.UnicodeUTF8))
-                self.msleep(1000)
-                while app.opros():
-                    self.msleep(1000)
 
-            uidialog.lStatus.setText(
-                qt_app.translate("Dialog", "<font color=\"red\">disconnected</font>", None, qt_app.UnicodeUTF8))
+    def stopping_raw_callback(self):
+        for dev in self.connected_devices:
+            dev.close()
+        uidialog.lStatus.setText(
+            qt_app.translate("Dialog", "<font color=\"red\">disconnected</font>", None, qt_app.UnicodeUTF8))
 
-    def stop(self):
-        uidialog.lStatus.setText(qt_app.translate("Dialog", "<font color=\"red\">disconnected</font>", None, qt_app.UnicodeUTF8))
 
 # кнопочка по которой показывается виртуальныя клава для выбора кнопки
 class MyButtonOpenKeySelector(Qt.QPushButton):
@@ -433,11 +427,8 @@ if __name__ == '__main__':
     uidialog.setupUi(widget)
     widget.grid.addWidget(my_virtual_keyboard_selector, 3, 0, 1, 2)
 
-    otdelniy_process = OtdelniyProcess()
-
     uidialog.pbStart.clicked.connect(app.start)
-    uidialog.pbStop.clicked.connect(otdelniy_process.terminate)
-    otdelniy_process.finished.connect(otdelniy_process.stop)
+    uidialog.pbStop.clicked.connect(app.stopping_raw_callback)
 
     trayIcon = Qt.QSystemTrayIcon(
         Qt.QIcon("myicon.png"), widget)
