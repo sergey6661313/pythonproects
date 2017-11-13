@@ -7,45 +7,50 @@ qt_app = Qt.QApplication([])
 hid_vendor_id =  0x0b57
 hid_product_id = 0x1304
 ptt_key = ptt_key=0x08
+connected_devices = []
+hid_device_filter = hid.HidDeviceFilter(vendor_id=hid_vendor_id, product_id=hid_product_id)
+hid_device_list = None
 
-class App:
-    sound_enabled = True
+def start(self):
+    global hid_device_filter
+    global hid_device_list
+    global connected_devices
 
-    def __init__(self):
-        self.connected_devices = []
-        self.hid_device_filter = hid.HidDeviceFilter(vendor_id=hid_vendor_id, product_id=hid_product_id)
-        self.hid_device_list = None
+    print("Looking for Device...")
+    hid_device_filter = hid.HidDeviceFilter(vendor_id=hid_vendor_id, product_id=hid_product_id)
+    hid_device_list = hid_device_filter.get_devices()
 
-    def start(self):
-        global ptt_key
-        ptt_key = hex(int(uidialog.leButtonCode.text(), 16))
-        print ( "Looking for Device..." )
-
-        self.hid_device_list = self.hid_device_filter.get_devices()
-        if self.hid_device_list:
-            for device in self.hid_device_list:
-                self.connected_devices.append(device)
-                device.open()
-                device.set_raw_data_handler(self.raw_input_callback)
-            uidialog.lStatus.setText(
-                qt_app.translate("Dialog", "<font color=\"green\">connected</font>", None, -1))
-
-        else:
-            print ( "Oh No, no devices were found! \n" )
-
-    def raw_input_callback(self, data):
-        print(data)
-        if data[2] == 1:
-            keybd_event(self.ptt_key, 0, 0x0000, 0)
-        elif data[2] == 0:
-            keybd_event(self.ptt_key, 0, 0x0002, 0)
-
-
-    def stopping_raw_callback(self):
-        for dev in self.connected_devices:
-            dev.close()
+    if hid_device_list:
+        for device in hid_device_list:
+            connected_devices.append(device)
+            device.open()
+            device.set_raw_data_handler(raw_input_callback)
         uidialog.lStatus.setText(
-            qt_app.translate("Dialog", "<font color=\"red\">disconnected</font>", None, -1))
+            qt_app.translate("Dialog", "<font color=\"green\">connected</font>", None, -1))
+
+    else:
+        print("Oh No, no devices were found! \n")
+
+
+def raw_input_callback(data):
+    global ptt_key
+    ptt_key = hex(int(uidialog.leButtonCode.text(), 16))
+
+    print(data)
+    if data[2] == 1:
+        keybd_event(ptt_key, 0, 0x0000, 0)
+    elif data[2] == 0:
+        keybd_event(ptt_key, 0, 0x0002, 0)
+
+
+def stopping_raw_callback(self):
+    global connected_devices
+
+    for dev in connected_devices:
+        dev.close()
+
+    connected_devices.clear()
+    uidialog.lStatus.setText("<font color=\"red\">disconnected</font>")
 
 
 # кнопочка по которой показывается виртуальныя клава для выбора кнопки
@@ -397,15 +402,14 @@ class MyTable_all_hid(Qt.QListWidget):
 my_list_hids = MyTable_all_hid()
 
 if __name__ == '__main__':
-    app = App()
 
     widget = Qt.QWidget()
     uidialog = Ui_Dialog()
     uidialog.setupUi(widget)
     widget.grid.addWidget(my_virtual_keyboard_selector, 3, 0, 1, 2)
 
-    uidialog.pbStart.clicked.connect(app.start)
-    uidialog.pbStop.clicked.connect(app.stopping_raw_callback)
+    uidialog.pbStart.clicked.connect(start)
+    uidialog.pbStop.clicked.connect(stopping_raw_callback)
 
     trayIcon = Qt.QSystemTrayIcon(
         Qt.QIcon("myicon.png"), widget)
