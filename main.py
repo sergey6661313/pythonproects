@@ -4,39 +4,22 @@ from win32api import keybd_event
 from PyQt5 import Qt, QtCore
 qt_app = Qt.QApplication([])
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    _fromUtf8 = lambda s: s
-qt_app.UnicodeUTF8 = -1
+hid_vendor_id =  0x0b57
+hid_product_id = 0x1304
+ptt_key = ptt_key=0x08
 
 class App:
-    hid_vendor_id =  0x0b57
-    hid_product_id = 0x1304
-
-    hid_device_list = None
     sound_enabled = True
 
-
-    def __init__(self, ptt_key=0x08):
-        self._ptt_key = ptt_key
+    def __init__(self):
         self.connected_devices = []
-
-    def set_ptt_key(self, value):
-        self._ptt_key = value
-
-    def get_ptt_key(self):
-        return self._ptt_key
-
-    ptt_key = property(get_ptt_key, set_ptt_key)
+        self.hid_device_filter = hid.HidDeviceFilter(vendor_id=hid_vendor_id, product_id=hid_product_id)
+        self.hid_device_list = None
 
     def start(self):
-        hex_str = uidialog.leButtonCode.text()
-        hex_int = hex(int(hex_str, 16))
-        self.set_ptt_key(hex_int)
+        global ptt_key
+        ptt_key = hex(int(uidialog.leButtonCode.text(), 16))
         print ( "Looking for Device..." )
-        self.hid_device_filter = hid.HidDeviceFilter(vendor_id = self.hid_vendor_id, product_id = self.hid_product_id)
-        self.hid_device_list = self.hid_device_filter.get_devices()
 
         self.hid_device_list = self.hid_device_filter.get_devices()
         if self.hid_device_list:
@@ -45,7 +28,7 @@ class App:
                 device.open()
                 device.set_raw_data_handler(self.raw_input_callback)
             uidialog.lStatus.setText(
-                qt_app.translate("Dialog", "<font color=\"green\">connected</font>", None, qt_app.UnicodeUTF8))
+                qt_app.translate("Dialog", "<font color=\"green\">connected</font>", None, -1))
 
         else:
             print ( "Oh No, no devices were found! \n" )
@@ -62,7 +45,7 @@ class App:
         for dev in self.connected_devices:
             dev.close()
         uidialog.lStatus.setText(
-            qt_app.translate("Dialog", "<font color=\"red\">disconnected</font>", None, qt_app.UnicodeUTF8))
+            qt_app.translate("Dialog", "<font color=\"red\">disconnected</font>", None, -1))
 
 
 # кнопочка по которой показывается виртуальныя клава для выбора кнопки
@@ -83,8 +66,6 @@ class MyButtonOpenKeySelector(Qt.QPushButton):
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
-        Dialog.setObjectName(_fromUtf8("Dialog"))
-
         # Dialog.resize(268, 70)  заместо этого делаем:
         Dialog.setMinimumSize(268, 60)
         Dialog.setMaximumSize(500, 400)
@@ -96,21 +77,17 @@ class Ui_Dialog(object):
         # кнопочка для показа клавиатуры
         self.label = MyButtonOpenKeySelector(Dialog) # невидимая кнопочка которая маскируется под лейбел
         Dialog.grid.addWidget(self.label, 0, 0, 1, 1)
-        self.label.setObjectName(_fromUtf8("label"))
 
         self.leButtonCode = Qt.QLineEdit(Dialog)
         self.leButtonCode.setReadOnly(True)
         Dialog.grid.addWidget(self.leButtonCode, 0, 1, 1, 1)
         self.leButtonCode.setText("0x08")
-        self.leButtonCode.setObjectName(_fromUtf8("leButtonCode"))
 
         self.pbStart = Qt.QPushButton(Dialog)
         Dialog.grid.addWidget(self.pbStart, 1, 0, 1, 1)
-        self.pbStart.setObjectName(_fromUtf8("pbStart"))
 
         self.pbStop = Qt.QPushButton(Dialog)
         Dialog.grid.addWidget(self.pbStop, 1, 1, 1, 1)
-        self.pbStop.setObjectName(_fromUtf8("pbStop"))
 
         # ещё одна новая кнопочка для отладки... можно удалить...
         self.pballdevices = Qt.QPushButton(Dialog)
@@ -122,17 +99,16 @@ class Ui_Dialog(object):
         self.lStatus.setMaximumHeight(15)
         self.lStatus.setAlignment(Qt.Qt.AlignCenter)
         Dialog.grid.addWidget(self.lStatus, 2, 0, 1, 2)
-        self.lStatus.setObjectName(_fromUtf8("lStatus"))
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
-        Dialog.setWindowTitle(qt_app.translate("Dialog", "Hot Key", None, qt_app.UnicodeUTF8))
-        self.pbStart.setText(qt_app.translate("Dialog", "Start", None, qt_app.UnicodeUTF8))
-        self.label.setText(qt_app.translate("Dialog", "Button code", None, qt_app.UnicodeUTF8))
-        self.pbStop.setText(qt_app.translate("Dialog", "Stop", None, qt_app.UnicodeUTF8))
-        self.lStatus.setText(qt_app.translate("Dialog", "<font color=\"red\">disconnected</font>", None, qt_app.UnicodeUTF8))
+        Dialog.setWindowTitle(qt_app.translate("Dialog", "Hot Key", None, -1))
+        self.pbStart.setText(qt_app.translate("Dialog", "Start", None, -1))
+        self.label.setText(qt_app.translate("Dialog", "Button code", None, -1))
+        self.pbStop.setText(qt_app.translate("Dialog", "Stop", None, -1))
+        self.lStatus.setText(qt_app.translate("Dialog", "<font color=\"red\">disconnected</font>", None, -1))
 
 
 def hideEvent(event):
