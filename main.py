@@ -1,28 +1,28 @@
 import pywinusb.hid as hid
 from win32api import keybd_event
 
-from PyQt5 import Qt, QtCore
-qt_app = Qt.QApplication([])
+from PyQt5 import Qt  # при таком импорте можно просто изменить PyQt4 на PyQt5, чтобы использовать PyQt4 соответственно
+qt_app = Qt.QApplication([]) # обязательно
 
+# размеры нашего окошка. В компактном виде и развёрнутом.
 window_size_x = 150
 window_size_y = 70
 window_size_expand_x = 480
 window_size_expand_y = 500
 
+# Наше usb устройство
 hid_vendor_id =  0x0b57
 hid_product_id = 0x1304
-ptt_key = 0x08
+
 connected_devices = []
 hid_device_filter = hid.HidDeviceFilter(vendor_id=hid_vendor_id, product_id=hid_product_id)
 hid_device_list = None
 
 def start(self):
-    global hid_device_filter
     global hid_device_list
     global connected_devices
 
     print ( "Looking for Device..." )
-    hid_device_filter = hid.HidDeviceFilter(vendor_id=hid_vendor_id, product_id=hid_product_id)
     hid_device_list = hid_device_filter.get_devices()
 
     if hid_device_list:
@@ -39,11 +39,10 @@ def start(self):
 
 
 def raw_input_callback(data):
-    print ( "input callbaced!" )
-    global ptt_key
-    ptt_key = hex(int(widget.leButtonCode.text(), 16))
-
+    print ( "_input callbacked!_" )
     print ( data )
+
+    ptt_key = int(widget.leButtonCode.text(), 16)
     if data[2] == 1:
         keybd_event(ptt_key, 0, 0x0000, 0)
     elif data[2] == 0:
@@ -174,6 +173,32 @@ other_codes = {
     'zoom_key':0xFB,
     'clear_key':0xFE
 }
+func_codes = {
+    'F1': 0x70,
+    'F2': 0x71,
+    'F3': 0x72,
+    'F4': 0x73,
+    'F5': 0x74,
+    'F6': 0x75,
+    'F7': 0x76,
+    'F8': 0x77,
+    'F9': 0x78,
+    'F10': 0x79,
+    'F11': 0x7A,
+    'F12': 0x7B,
+    'F13': 0x7C,
+    'F14': 0x7D,
+    'F15': 0x7E,
+    'F16': 0x7F,
+    'F17': 0x80,
+    'F18': 0x81,
+    'F19': 0x82,
+    'F20': 0x83,
+    'F21': 0x84,
+    'F22': 0x85,
+    'F23': 0x86,
+    'F24': 0x87
+}
 
 class MyWidget(Qt.QWidget):
     class MyVirtualKeyboardSelector(Qt.QWidget):    # виджет виртуальной клавы
@@ -206,7 +231,6 @@ class MyWidget(Qt.QWidget):
             self.widget_nabor1.grid.setSpacing(0)
             self.widget_nabor1.grid.setContentsMargins(0, 0, 0, 0)
             self.grid.addWidget(self.widget_nabor1, 0, 0, 1, 1)
-
             x = 0
             for nabor in [chislo_codes, key_codes]:
                 i = 0
@@ -226,36 +250,9 @@ class MyWidget(Qt.QWidget):
             self.widget_nabor_Func.grid.setSpacing(0)
             self.widget_nabor_Func.grid.setContentsMargins(0, 0, 0, 0)
             self.grid.addWidget(self.widget_nabor_Func, 1, 0, 1, 2)
-
-            # кнопочки можно добавлять так:
             i = 0
             x = 0
-            for vk, cod in {
-                'F1': 0x70,
-                'F2': 0x71,
-                'F3': 0x72,
-                'F4': 0x73,
-                'F5': 0x74,
-                'F6': 0x75,
-                'F7': 0x76,
-                'F8': 0x77,
-                'F9': 0x78,
-                'F10': 0x79,
-                'F11': 0x7A,
-                'F12': 0x7B,
-                'F13': 0x7C,
-                'F14': 0x7D,
-                'F15': 0x7E,
-                'F16': 0x7F,
-                'F17': 0x80,
-                'F18': 0x81,
-                'F19': 0x82,
-                'F20': 0x83,
-                'F21': 0x84,
-                'F22': 0x85,
-                'F23': 0x86,
-                'F24': 0x87
-            }.items():
+            for vk, cod in func_codes.items():
                 new_buttn = self.MySelectButton(vk, cod)
                 self.buttons.append(new_buttn)
                 self.widget_nabor_Func.grid.addWidget(new_buttn, i, x, 1, 1)
@@ -264,6 +261,7 @@ class MyWidget(Qt.QWidget):
                     x = 0
                     i += 1
 
+
             self.widget_numpads = Qt.QGroupBox()
             self.widget_numpads.setTitle("NUM_PAD")
             self.widget_numpads.grid = Qt.QGridLayout(self.widget_numpads)
@@ -271,7 +269,6 @@ class MyWidget(Qt.QWidget):
             self.widget_numpads.grid.setContentsMargins(0, 0, 0, 0)
             self.grid.addWidget(self.widget_numpads, 0, 1, 1, 1)
 
-            # или так
             self.widget_numpads.grid.addWidget(self.MySelectButton('lck', 0x90), 0, 0, 1, 1)
             self.widget_numpads.grid.addWidget(self.MySelectButton('/', 0x6F), 0, 1, 1, 1)
             self.widget_numpads.grid.addWidget(self.MySelectButton('*', 0x6A), 0, 2, 1, 1)
@@ -294,14 +291,13 @@ class MyWidget(Qt.QWidget):
             self.widget_numpads.grid.addWidget(self.MySelectButton('0', 0x60), 4, 0, 1, 2)
             self.widget_numpads.grid.addWidget(self.MySelectButton('.', 0x6C), 4, 2, 1, 1)
 
+
             self.widget_nabor_other = Qt.QGroupBox()
             self.widget_nabor_other.setTitle("other")
             self.widget_nabor_other.grid = Qt.QGridLayout(self.widget_nabor_other)
             self.widget_nabor_other.grid.setSpacing(0)
             self.widget_nabor_other.grid.setContentsMargins(0, 0, 0, 0)
             self.grid.addWidget(self.widget_nabor_other, 2, 0, 1, 2)
-
-            # и даже так:
             i = 0
             for nabor in [spec_codes, other_codes]:
                 for vk, cod in nabor.items():
@@ -336,7 +332,7 @@ class MyWidget(Qt.QWidget):
         self.grid.addWidget(self.label, 0, 0, 1, 1)
 
         self.leButtonCode = Qt.QLineEdit(self)
-        self.leButtonCode.setReadOnly(True)
+        # self.leButtonCode.setReadOnly(True) всё таки выключу
         self.grid.addWidget(self.leButtonCode, 0, 1, 1, 1)
         self.leButtonCode.setText("0x08")
 
@@ -348,12 +344,6 @@ class MyWidget(Qt.QWidget):
         self.pbStart = Qt.QPushButton(self)
         self.pbStart.setText("Start 🏁")
         self.grid.addWidget(self.pbStart, 1, 0, 1, 2)
-
-        # ещё одна новая кнопочка для отладки... можно удалить...
-        self.pballdevices = Qt.QPushButton(self)
-        self.pballdevices.setMaximumWidth(10)
-        self.pballdevices.pressed.connect(my_list_hids.obnivit)
-        self.grid.addWidget(self.pballdevices, 0, 2, 2, 1)
 
         self.lStatus = Qt.QLabel(self)
         self.lStatus.setText("<font color=\"red\">disconnected</font>")
@@ -372,12 +362,18 @@ class MyWidget(Qt.QWidget):
         Qt.QWidget.showNormal(widget)
         trayIcon.hide()
 
-
 class MyTable_all_hid(Qt.QListWidget):
     def __init__(self):
         Qt.QListWidget.__init__(self)
         self.setWindowFlags(Qt.Qt.Popup)
         self.setMinimumHeight(300)
+
+        # ещё одна новая кнопочка для отладки... можно удалить...
+        self.pballdevices = Qt.QPushButton(self)
+        self.pballdevices.setMaximumWidth(10)
+        self.pballdevices.pressed.connect(self.obnivit)
+        widget.grid.addWidget(self.pballdevices, 0, 2, 2, 1)
+
     def obnivit(self):
         self.clear()
         hid_device_filter = hid.HidDeviceFilter()
@@ -390,10 +386,8 @@ class MyTable_all_hid(Qt.QListWidget):
         Qt.QListWidget.mousePressEvent(self, event)
         self.hide()
 
-
-my_list_hids = MyTable_all_hid()
-
 widget = MyWidget()
+my_list_hids = MyTable_all_hid()
 
 widget.pbStart.clicked.connect(start)
 widget.pbStop.clicked.connect(stopping_raw_callback)
