@@ -99,8 +99,9 @@ class Ui_Dialog(object):
         self.label.setObjectName(_fromUtf8("label"))
 
         self.leButtonCode = Qt.QLineEdit(Dialog)
+        self.leButtonCode.setReadOnly(True)
         Dialog.grid.addWidget(self.leButtonCode, 0, 1, 1, 1)
-        self.leButtonCode.setText("0x0")
+        self.leButtonCode.setText("0x08")
         self.leButtonCode.setObjectName(_fromUtf8("leButtonCode"))
 
         self.pbStart = Qt.QPushButton(Dialog)
